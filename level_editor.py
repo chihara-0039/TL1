@@ -1,4 +1,5 @@
 import bpy
+import bpy_extras
 import math
 
 # Blenderに登録するアドオン情報
@@ -66,11 +67,13 @@ class MYADDON_OT_create_ico_sphere(bpy.types.Operator):
 
 
 # =========================================================
-# シーン情報を出力するオペレーター
+# シーン情報をファイルに出力するオペレーター
 # =========================================================
-class MYADDON_OT_export_scene(bpy.types.Operator):
+class MYADDON_OT_export_scene(
+    bpy.types.Operator,
+    bpy_extras.io_utils.ExportHelper
+):
     # Blender内部で使うID
-    # メニューから呼ぶときは "myaddon.export_scene" と書く
     bl_idname = "myaddon.export_scene"
 
     # メニューに表示される名前
@@ -79,48 +82,103 @@ class MYADDON_OT_export_scene(bpy.types.Operator):
     # 説明文
     bl_description = "シーン情報をExportします"
 
-    # Ctrl + Z の対象にする必要は薄いが、授業資料に合わせて登録系オペレーターとして扱う
-    bl_options = {'REGISTER'}
+    # ファイル選択UIで使う拡張子
+    filename_ext = ".scene"
 
-    # 実行されたときに呼ばれる関数
+    # オペレーター実行時に呼ばれる
     def execute(self, context):
         print("シーン情報をExportします")
 
-        # シーン内の全オブジェクトを順番に調べる
-        for obj in context.scene.objects:
-            # オブジェクトの種類と名前を表示
-            print(obj.type + " - " + obj.name)
-
-            # ローカルトランスフォーム行列から
-            # 平行移動、回転、スケールを取り出す
-            trans, rot, scale = obj.matrix_local.decompose()
-
-            # Quaternion回転をEuler角に変換
-            rot = rot.to_euler()
-
-            # ラジアンから度数法に変換
-            rot.x = math.degrees(rot.x)
-            rot.y = math.degrees(rot.y)
-            rot.z = math.degrees(rot.z)
-
-            # トランスフォーム情報を表示
-            print("Trans(%f,%f,%f)" % (trans.x, trans.y, trans.z))
-            print("Rot(%f,%f,%f)" % (rot.x, rot.y, rot.z))
-            print("Scale(%f,%f,%f)" % (scale.x, scale.y, scale.z))
-
-            # 親オブジェクトがある場合は親の名前も表示
-            if obj.parent:
-                print("Parent:" + obj.parent.name)
-
-            # 次のオブジェクトと区切るための空行
-            print()
+        # 実際のファイル出力処理
+        self.export()
 
         print("シーン情報をExportしました")
-
-        # Blenderウィンドウ下部にメッセージ表示
         self.report({'INFO'}, "シーン情報をExportしました")
 
         return {'FINISHED'}
+
+    # -----------------------------------------------------
+    # コンソール表示とファイル出力を同時に行う関数
+    # -----------------------------------------------------
+    def write_and_print(self, file, text):
+        # コンソールに表示
+        print(text)
+
+        # ファイルに書き込み
+        # print() と違って file.write() は自動改行しないので \n を追加する
+        file.write(text)
+        file.write("\n")
+
+    # -----------------------------------------------------
+    # 実際にファイルを書き出す関数
+    # -----------------------------------------------------
+    def export(self):
+        print("シーン情報出力開始... %r" % self.filepath)
+
+        # ファイルをテキスト書き込みモードで開く
+        # with を使うと、処理終了時に自動でファイルを閉じてくれる
+        with open(self.filepath, "wt", encoding="utf-8") as file:
+            # 最初にファイル識別用の文字列を書き込む
+            self.write_and_print(file, "SCENE")
+
+            # シーン内の全オブジェクトを調べる
+            for obj in bpy.context.scene.objects:
+                # 親があるオブジェクトはここでは処理しない
+                # 親側の parse_scene_recursive() から子として処理する
+                if obj.parent:
+                    continue
+
+                # ルート直下のオブジェクトだけ再帰処理開始
+                self.parse_scene_recursive(file, obj, 0)
+
+    # -----------------------------------------------------
+    # シーン解析用の再帰関数
+    # -----------------------------------------------------
+    def parse_scene_recursive(self, file, obj, level):
+        # 深さに応じてタブを増やす
+        # level 0: 親なし
+        # level 1: 子
+        # level 2: 孫
+        indent = ""
+        for i in range(level):
+            indent += "\t"
+
+        # オブジェクトの種類と名前を書き出す
+        self.write_and_print(file, indent + obj.type + " - " + obj.name)
+
+        # ローカルトランスフォーム行列から
+        # 平行移動、回転、スケールを取り出す
+        trans, rot, scale = obj.matrix_local.decompose()
+
+        # Quaternion回転をEuler角に変換
+        rot = rot.to_euler()
+
+        # ラジアンから度数法に変換
+        rot.x = math.degrees(rot.x)
+        rot.y = math.degrees(rot.y)
+        rot.z = math.degrees(rot.z)
+
+        # トランスフォーム情報を書き出す
+        self.write_and_print(
+            file,
+            indent + "Trans(%f,%f,%f)" % (trans.x, trans.y, trans.z)
+        )
+        self.write_and_print(
+            file,
+            indent + "Rot(%f,%f,%f)" % (rot.x, rot.y, rot.z)
+        )
+        self.write_and_print(
+            file,
+            indent + "Scale(%f,%f,%f)" % (scale.x, scale.y, scale.z)
+        )
+
+        # 次のオブジェクトと区切るための空行
+        self.write_and_print(file, "")
+
+        # 子オブジェクトを再帰的に処理する
+        # 子は level + 1 になるので、1段深くインデントされる
+        for child in obj.children:
+            self.parse_scene_recursive(file, child, level + 1)
 
 
 # =========================================================
