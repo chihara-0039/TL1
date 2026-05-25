@@ -1,4 +1,5 @@
 import bpy
+import math
 
 # Blenderに登録するアドオン情報
 bl_info = {
@@ -20,40 +21,26 @@ bl_info = {
 # 頂点を伸ばすオペレーター
 # =========================================================
 class MYADDON_OT_stretch_vertex(bpy.types.Operator):
-    # Blender内部で使うID
-    # メニューから呼ぶときは "myaddon.stretch_vertex" と書く
     bl_idname = "myaddon.stretch_vertex"
-
-    # メニューに表示される名前
     bl_label = "頂点を伸ばす"
-
-    # 説明文
     bl_description = "頂点を引っ張って伸ばします"
-
-    # Ctrl + Z で戻せるようにする
     bl_options = {'REGISTER', 'UNDO'}
 
-    # 実行されたときに呼ばれる関数
     def execute(self, context):
-        # 現在選択中のオブジェクトを取得
         obj = context.object
 
-        # オブジェクトがない場合
         if obj is None:
             self.report({'WARNING'}, "オブジェクトが選択されていません")
             return {'CANCELLED'}
 
-        # メッシュではない場合
         if obj.type != 'MESH':
             self.report({'WARNING'}, "メッシュオブジェクトを選択してください")
             return {'CANCELLED'}
 
-        # 頂点が存在しない場合
         if len(obj.data.vertices) == 0:
             self.report({'WARNING'}, "頂点がありません")
             return {'CANCELLED'}
 
-        # 0番目の頂点をX方向に伸ばす
         obj.data.vertices[0].co.x += 1.0
 
         print("頂点を伸ばしました。")
@@ -65,22 +52,12 @@ class MYADDON_OT_stretch_vertex(bpy.types.Operator):
 # ICO球を作成するオペレーター
 # =========================================================
 class MYADDON_OT_create_ico_sphere(bpy.types.Operator):
-    # Blender内部で使うID
-    # メニューから呼ぶときは "myaddon.create_ico_sphere" と書く
     bl_idname = "myaddon.create_ico_sphere"
-
-    # メニューに表示される名前
     bl_label = "ICO球を生成"
-
-    # 説明文
     bl_description = "ICO球を生成します"
-
-    # Ctrl + Z で戻せるようにする
     bl_options = {'REGISTER', 'UNDO'}
 
-    # 実行されたときに呼ばれる関数
     def execute(self, context):
-        # ICO球を追加
         bpy.ops.mesh.primitive_ico_sphere_add()
 
         print("ICO球を生成しました。")
@@ -89,19 +66,71 @@ class MYADDON_OT_create_ico_sphere(bpy.types.Operator):
 
 
 # =========================================================
+# シーン情報を出力するオペレーター
+# =========================================================
+class MYADDON_OT_export_scene(bpy.types.Operator):
+    # Blender内部で使うID
+    # メニューから呼ぶときは "myaddon.export_scene" と書く
+    bl_idname = "myaddon.export_scene"
+
+    # メニューに表示される名前
+    bl_label = "シーン出力"
+
+    # 説明文
+    bl_description = "シーン情報をExportします"
+
+    # Ctrl + Z の対象にする必要は薄いが、授業資料に合わせて登録系オペレーターとして扱う
+    bl_options = {'REGISTER'}
+
+    # 実行されたときに呼ばれる関数
+    def execute(self, context):
+        print("シーン情報をExportします")
+
+        # シーン内の全オブジェクトを順番に調べる
+        for obj in context.scene.objects:
+            # オブジェクトの種類と名前を表示
+            print(obj.type + " - " + obj.name)
+
+            # ローカルトランスフォーム行列から
+            # 平行移動、回転、スケールを取り出す
+            trans, rot, scale = obj.matrix_local.decompose()
+
+            # Quaternion回転をEuler角に変換
+            rot = rot.to_euler()
+
+            # ラジアンから度数法に変換
+            rot.x = math.degrees(rot.x)
+            rot.y = math.degrees(rot.y)
+            rot.z = math.degrees(rot.z)
+
+            # トランスフォーム情報を表示
+            print("Trans(%f,%f,%f)" % (trans.x, trans.y, trans.z))
+            print("Rot(%f,%f,%f)" % (rot.x, rot.y, rot.z))
+            print("Scale(%f,%f,%f)" % (scale.x, scale.y, scale.z))
+
+            # 親オブジェクトがある場合は親の名前も表示
+            if obj.parent:
+                print("Parent:" + obj.parent.name)
+
+            # 次のオブジェクトと区切るための空行
+            print()
+
+        print("シーン情報をExportしました")
+
+        # Blenderウィンドウ下部にメッセージ表示
+        self.report({'INFO'}, "シーン情報をExportしました")
+
+        return {'FINISHED'}
+
+
+# =========================================================
 # トップバーに追加する自作メニュークラス
 # =========================================================
 class TOPBAR_MT_my_menu(bpy.types.Menu):
-    # Blender内部で使うID
     bl_idname = "TOPBAR_MT_my_menu"
-
-    # メニューに表示される名前
     bl_label = "MyMenu"
-
-    # メニューの説明
     bl_description = "拡張メニュー by Taro Kamata"
 
-    # メニューの中身を描画する関数
     def draw(self, context):
         # 「頂点を伸ばす」項目を追加
         self.layout.operator(
@@ -113,6 +142,15 @@ class TOPBAR_MT_my_menu(bpy.types.Menu):
         self.layout.operator(
             MYADDON_OT_create_ico_sphere.bl_idname,
             text=MYADDON_OT_create_ico_sphere.bl_label
+        )
+
+        # 区切り線
+        self.layout.separator()
+
+        # 「シーン出力」項目を追加
+        self.layout.operator(
+            MYADDON_OT_export_scene.bl_idname,
+            text=MYADDON_OT_export_scene.bl_label
         )
 
 
@@ -129,6 +167,7 @@ def draw_menu(self, context):
 classes = (
     MYADDON_OT_stretch_vertex,
     MYADDON_OT_create_ico_sphere,
+    MYADDON_OT_export_scene,
     TOPBAR_MT_my_menu,
 )
 
@@ -137,11 +176,9 @@ classes = (
 # アドオン有効化時に呼ばれる
 # =========================================================
 def register():
-    # 自作クラスをBlenderに登録
     for cls in classes:
         bpy.utils.register_class(cls)
 
-    # トップバーのメニューに自作メニューを追加
     bpy.types.TOPBAR_MT_editor_menus.append(draw_menu)
 
     print("レベルエディタが有効化されました。")
@@ -151,11 +188,8 @@ def register():
 # アドオン無効化時に呼ばれる
 # =========================================================
 def unregister():
-    # トップバーのメニューから自作メニューを削除
     bpy.types.TOPBAR_MT_editor_menus.remove(draw_menu)
 
-    # 自作クラスをBlenderから削除
-    # 登録した順番と逆順で解除する
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
 
