@@ -4,8 +4,6 @@ import math
 import gpu
 import gpu_extras.batch
 import copy
-import mathutils
-import json
 
 # Blenderに登録するアドオン情報
 bl_info = {
@@ -97,32 +95,6 @@ class MYADDON_OT_add_filename(bpy.types.Operator):
 
 
 # =========================================================
-# カスタムプロパティ「collider」を追加するオペレーター
-# =========================================================
-class MYADDON_OT_add_collider(bpy.types.Operator):
-    bl_idname = "myaddon.add_collider"
-    bl_label = "コライダー追加"
-    bl_description = "選択中のオブジェクトにBoxコライダー用のカスタムプロパティを追加します"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        obj = context.object
-
-        if obj is None:
-            self.report({'WARNING'}, "オブジェクトが選択されていません")
-            return {'CANCELLED'}
-
-        # Boxコライダー用のカスタムプロパティを追加
-        obj["collider"] = "BOX"
-        obj["collider_center"] = mathutils.Vector((0.0, 0.0, 0.0))
-        obj["collider_size"] = mathutils.Vector((2.0, 2.0, 2.0))
-
-        print("Boxコライダー用カスタムプロパティを追加しました。")
-
-        return {'FINISHED'}
-
-
-# =========================================================
 # カスタムプロパティ表示用パネル
 # =========================================================
 class OBJECT_PT_file_name(bpy.types.Panel):
@@ -147,32 +119,6 @@ class OBJECT_PT_file_name(bpy.types.Panel):
 
         # file_name がある場合は編集欄を表示
         layout.prop(obj, '["file_name"]', text="FileName")
-
-
-# =========================================================
-# コライダー表示用パネル
-# =========================================================
-class OBJECT_PT_collider(bpy.types.Panel):
-    bl_idname = "OBJECT_PT_collider"
-    bl_label = "Collider"
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    bl_context = "object"
-
-    def draw(self, context):
-        layout = self.layout
-        obj = context.object
-
-        if obj is None:
-            layout.label(text="オブジェクトが選択されていません")
-            return
-
-        if "collider" in obj:
-            layout.prop(obj, '["collider"]', text="Type")
-            layout.prop(obj, '["collider_center"]', text="Center")
-            layout.prop(obj, '["collider_size"]', text="Size")
-        else:
-            layout.operator(MYADDON_OT_add_collider.bl_idname, text="コライダー追加")
 
 
 # =========================================================
@@ -202,43 +148,25 @@ class DrawCollider:
             [+0.5, +0.5, +0.5],
         ]
 
+        # 立方体のサイズ
+        size = [2, 2, 2]
+
         # シーン上の全オブジェクトを走査
         for obj in bpy.context.scene.objects:
-            # collider カスタムプロパティが無いオブジェクトは描画しない
-            if "collider" not in obj:
+            # カメラやライトは除外
+            if obj.type not in {"MESH"}:
                 continue
-
-            # collider が BOX 以外なら描画しない
-            if obj["collider"] != "BOX":
-                continue
-
-            # コライダー用プロパティを取得
-            center = mathutils.Vector((0.0, 0.0, 0.0))
-            size = mathutils.Vector((2.0, 2.0, 2.0))
-
-            if "collider_center" in obj:
-                center[0] = obj["collider_center"][0]
-                center[1] = obj["collider_center"][1]
-                center[2] = obj["collider_center"][2]
-
-            if "collider_size" in obj:
-                size[0] = obj["collider_size"][0]
-                size[1] = obj["collider_size"][1]
-                size[2] = obj["collider_size"][2]
 
             # このオブジェクトの頂点開始番号
             start = len(vertices["pos"])
 
             # Boxの8頂点を追加
             for offset in offsets:
-                # コライダー中心点からのローカル座標を作る
-                pos = copy.copy(center)
+                pos = copy.copy(obj.location)
+
                 pos[0] += offset[0] * size[0]
                 pos[1] += offset[1] * size[1]
                 pos[2] += offset[2] * size[2]
-
-                # ローカル座標からワールド座標に変換
-                pos = obj.matrix_world @ pos
 
                 vertices["pos"].append(pos)
 
@@ -282,7 +210,6 @@ class DrawCollider:
         batch.draw(shader)
 
 
-
 # =========================================================
 # シーン情報をファイルに出力するオペレーター
 # =========================================================
@@ -300,14 +227,14 @@ class MYADDON_OT_export_scene(
     bl_description = "シーン情報をExportします"
 
     # ファイル選択UIで使う拡張子
-    filename_ext = ".json"
+    filename_ext = ".scene"
 
     # オペレーター実行時に呼ばれる
     def execute(self, context):
         print("シーン情報をExportします")
 
         # 実際のファイル出力処理
-        self.export_json()
+        self.export()
 
         print("シーン情報をExportしました")
         self.report({'INFO'}, "シーン情報をExportしました")
@@ -386,29 +313,6 @@ class MYADDON_OT_export_scene(
                 indent + "N %s" % obj["file_name"]
             )
 
-        # カスタムプロパティ collider がある場合だけ出力
-        if "collider" in obj:
-            self.write_and_print(
-                file,
-                indent + "C %s" % obj["collider"]
-            )
-            self.write_and_print(
-                file,
-                indent + "CC %f %f %f" % (
-                    obj["collider_center"][0],
-                    obj["collider_center"][1],
-                    obj["collider_center"][2]
-                )
-            )
-            self.write_and_print(
-                file,
-                indent + "CS %f %f %f" % (
-                    obj["collider_size"][0],
-                    obj["collider_size"][1],
-                    obj["collider_size"][2]
-                )
-            )
-
         # オブジェクトの終端
         self.write_and_print(file, indent + "END")
 
@@ -444,12 +348,6 @@ class TOPBAR_MT_my_menu(bpy.types.Menu):
             text=MYADDON_OT_add_filename.bl_label
         )
 
-        # 「コライダー追加」項目を追加
-        self.layout.operator(
-            MYADDON_OT_add_collider.bl_idname,
-            text=MYADDON_OT_add_collider.bl_label
-        )
-
         # 区切り線
         self.layout.separator()
 
@@ -474,11 +372,9 @@ classes = (
     MYADDON_OT_stretch_vertex,
     MYADDON_OT_create_ico_sphere,
     MYADDON_OT_add_filename,
-    MYADDON_OT_add_collider,
     MYADDON_OT_export_scene,
     TOPBAR_MT_my_menu,
     OBJECT_PT_file_name,
-    OBJECT_PT_collider,
 )
 
 
@@ -490,7 +386,7 @@ def register():
         bpy.utils.register_class(cls)
 
     bpy.types.TOPBAR_MT_editor_menus.append(draw_menu)
-    
+
     # 3Dビューに描画関数を追加
     DrawCollider.handle = bpy.types.SpaceView3D.draw_handler_add(
         DrawCollider.draw_collider,
@@ -510,7 +406,7 @@ def unregister():
     if DrawCollider.handle is not None:
         bpy.types.SpaceView3D.draw_handler_remove(DrawCollider.handle, "WINDOW")
         DrawCollider.handle = None
-        
+
     bpy.types.TOPBAR_MT_editor_menus.remove(draw_menu)
 
     for cls in reversed(classes):
