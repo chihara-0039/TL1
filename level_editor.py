@@ -1,6 +1,9 @@
 import bpy
 import bpy_extras
 import math
+import gpu
+import gpu_extras.batch
+import copy
 
 # Blenderに登録するアドオン情報
 bl_info = {
@@ -64,6 +67,92 @@ class MYADDON_OT_create_ico_sphere(bpy.types.Operator):
         print("ICO球を生成しました。")
 
         return {'FINISHED'}
+
+
+
+# =========================================================
+# コライダー描画クラス
+# =========================================================
+class DrawCollider:
+    # 3Dビュー描画の登録ハンドル
+    handle = None
+
+    @staticmethod
+    def draw_collider():
+        # 頂点データ
+        vertices = {"pos": []}
+
+        # インデックスデータ
+        indices = []
+
+        # 立方体の8頂点のオフセット
+        offsets = [
+            [-0.5, -0.5, -0.5],
+            [+0.5, -0.5, -0.5],
+            [-0.5, +0.5, -0.5],
+            [+0.5, +0.5, -0.5],
+            [-0.5, -0.5, +0.5],
+            [+0.5, -0.5, +0.5],
+            [-0.5, +0.5, +0.5],
+            [+0.5, +0.5, +0.5],
+        ]
+
+        # Boxのサイズ
+        size = [2.0, 2.0, 2.0]
+
+        # シーン内の全オブジェクトを走査
+        for obj in bpy.context.scene.objects:
+            # カメラやライトは描画しない
+            if obj.type != "MESH":
+                continue
+
+            # このBoxの頂点開始番号
+            start = len(vertices["pos"])
+
+            # Boxの8頂点を追加
+            for offset in offsets:
+                pos = copy.copy(obj.location)
+
+                pos[0] += offset[0] * size[0]
+                pos[1] += offset[1] * size[1]
+                pos[2] += offset[2] * size[2]
+
+                vertices["pos"].append(pos)
+
+            # 前面
+            indices.append([start + 0, start + 1])
+            indices.append([start + 1, start + 3])
+            indices.append([start + 3, start + 2])
+            indices.append([start + 2, start + 0])
+
+            # 奥面
+            indices.append([start + 4, start + 5])
+            indices.append([start + 5, start + 7])
+            indices.append([start + 7, start + 6])
+            indices.append([start + 6, start + 4])
+
+            # 前面と奥面をつなぐ辺
+            indices.append([start + 0, start + 4])
+            indices.append([start + 1, start + 5])
+            indices.append([start + 2, start + 6])
+            indices.append([start + 3, start + 7])
+
+        if len(vertices["pos"]) == 0:
+            return
+
+        # シェーダとバッチを作成
+        shader = gpu.shader.from_builtin("UNIFORM_COLOR")
+        batch = gpu_extras.batch.batch_for_shader(
+            shader,
+            "LINES",
+            vertices,
+            indices=indices
+        )
+
+        # 水色で描画
+        shader.bind()
+        shader.uniform_float("color", [0.5, 1.0, 1.0, 1.0])
+        batch.draw(shader)
 
 
 # =========================================================
@@ -239,6 +328,14 @@ def register():
 
     bpy.types.TOPBAR_MT_editor_menus.append(draw_menu)
 
+    # 3Dビューに描画関数を登録する
+    DrawCollider.handle = bpy.types.SpaceView3D.draw_handler_add(
+        DrawCollider.draw_collider,
+        (),
+        "WINDOW",
+        "POST_VIEW"
+    )
+
     print("レベルエディタが有効化されました。")
 
 
@@ -246,6 +343,11 @@ def register():
 # アドオン無効化時に呼ばれる
 # =========================================================
 def unregister():
+    # 3Dビューから描画関数を解除する
+    if DrawCollider.handle is not None:
+        bpy.types.SpaceView3D.draw_handler_remove(DrawCollider.handle, "WINDOW")
+        DrawCollider.handle = None
+
     bpy.types.TOPBAR_MT_editor_menus.remove(draw_menu)
 
     for cls in reversed(classes):
