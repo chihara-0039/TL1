@@ -1,0 +1,11 @@
+﻿Add-Type -AssemblyName System.Drawing
+$img = [System.Drawing.Image]::FromFile("project/Resources/UI/tutorial/placement_tutorial.png")
+$bmp = new-object System.Drawing.Bitmap($img)
+$img.Dispose()
+$g = [System.Drawing.Graphics]::FromImage($bmp)
+$pen = new-object System.Drawing.Pen([System.Drawing.Color]::Red, 2)
+$g.DrawRectangle($pen, 250, 10, 150, 80)
+$g.Dispose()
+$pen.Dispose()
+$bmp.Save("project/Resources/UI/tutorial/temp_test.png")
+$bmp.Dispose()

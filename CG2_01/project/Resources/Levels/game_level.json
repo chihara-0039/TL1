@@ -1,0 +1,531 @@
+{
+  "name": "Blender_Model_Showcase",
+  "version": 2,
+  "objects": [
+    {
+      "type": "MESH",
+      "name": "Main Ground",
+      "transform": {
+        "translation": [
+          0.0,
+          2.0,
+          -0.5
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          12.0,
+          10.0,
+          1.0
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/block/block.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Player Start Marker",
+      "transform": {
+        "translation": [
+          0.0,
+          -6.5,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          0.699999988079071,
+          0.699999988079071,
+          0.699999988079071
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/midpoint/midpoint.obj",
+      "spawn_point": {
+        "enabled": true,
+        "type": "Player"
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Left Boundary Wall",
+      "transform": {
+        "translation": [
+          -8.8160400390625,
+          2.0,
+          1.5
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          1.0,
+          10.0,
+          3.0
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/wall/wall.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Right Boundary Wall",
+      "transform": {
+        "translation": [
+          6.532986640930176,
+          2.0,
+          1.5
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          1.0,
+          10.0,
+          3.0
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/wall/wall.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Stone Steps 01",
+      "transform": {
+        "translation": [
+          -4.613642692565918,
+          -4.838715553283691,
+          0.5
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/cube/cube.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Stone Steps 02",
+      "transform": {
+        "translation": [
+          -0.9850963354110718,
+          0.7441120147705078,
+          0.09259092807769775
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          0.44999998807907104,
+          0.44999998807907104,
+          0.44999998807907104
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/multiMaterial/multiMaterial.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Stone Steps 03",
+      "transform": {
+        "translation": [
+          1.0,
+          2.0,
+          1.5
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          0.44999998807907104,
+          0.44999998807907104,
+          0.44999998807907104
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/multiMesh/multiMesh.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Collapsed Ruins",
+      "transform": {
+        "translation": [
+          2.7978618144989014,
+          0.3957042694091797,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          12.000008017893238
+        ],
+        "scaling": [
+          1.2000001668930054,
+          1.2000001668930054,
+          1.2000000476837158
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/CollapsedBlocks/CollapsedBlocks.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Ancient Door",
+      "transform": {
+        "translation": [
+          0.0,
+          8.5,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          1.7999999523162842,
+          1.7999999523162842,
+          1.7999999523162842
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/door/door.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Observation Ladder",
+      "transform": {
+        "translation": [
+          -8.0,
+          4.5,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          1.5,
+          1.5,
+          1.5
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/ladder/ladder.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Ice Sculpture",
+      "transform": {
+        "translation": [
+          7.5,
+          -4.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          19.99999941818584
+        ],
+        "scaling": [
+          1.399999976158142,
+          1.399999976158142,
+          1.399999976158142
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/iceBlock/iceBlock.obj",
+      "collider": {
+        "type": "BOX",
+        "center": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "type": "MESH",
+      "name": "Spike Garden Left",
+      "transform": {
+        "translation": [
+          -3.0,
+          6.5,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          1.2000000476837158,
+          1.2000000476837158,
+          1.2000000476837158
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/spike/spike.obj"
+    },
+    {
+      "type": "MESH",
+      "name": "Spike Garden Right",
+      "transform": {
+        "translation": [
+          3.0,
+          6.5,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          1.2000000476837158,
+          1.2000000476837158,
+          1.2000000476837158
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/spike/spike.obj"
+    },
+    {
+      "type": "MESH",
+      "name": "Floating Star",
+      "transform": {
+        "translation": [
+          -6.5,
+          0.5,
+          3.200000047683716
+        ],
+        "rotation": [
+          -2.2528952741841533e-07,
+          25.000005249147826,
+          15.000003832507613
+        ],
+        "scaling": [
+          1.100000023841858,
+          1.0999999046325684,
+          1.0999999046325684
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/star/star.obj"
+    },
+    {
+      "type": "MESH",
+      "name": "Floating Key",
+      "transform": {
+        "translation": [
+          3.8837594985961914,
+          0.5,
+          0.6429228782653809
+        ],
+        "rotation": [
+          15.000000417413029,
+          1.6677727514341771e-06,
+          30.00000424992064
+        ],
+        "scaling": [
+          1.399999976158142,
+          1.399999976158142,
+          1.399999976158142
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/key/key.obj"
+    },
+    {
+      "type": "MESH",
+      "name": "Bubble Cluster",
+      "transform": {
+        "translation": [
+          8.0,
+          5.0,
+          2.5
+        ],
+        "rotation": [
+          0.0,
+          -0.0,
+          0.0
+        ],
+        "scaling": [
+          1.600000023841858,
+          1.600000023841858,
+          1.600000023841858
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/soapBubbles/soapBubbles.obj"
+    },
+    {
+      "type": "MESH",
+      "name": "Choice Monument",
+      "transform": {
+        "translation": [
+          -8.0,
+          -3.5,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          -10.000005685508444
+        ],
+        "scaling": [
+          1.100000023841858,
+          1.100000023841858,
+          1.100000023841858
+        ]
+      },
+      "children": [],
+      "file_name": "Resources/Models/choice/choice.obj"
+    }
+  ]
+}

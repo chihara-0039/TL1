@@ -1,0 +1,50 @@
+{
+  "name": "sample_level",
+  "objects": [
+    {
+      "type": "MESH",
+      "name": "Center Cube",
+      "file_name": "Resources/Models/cube/cube.obj",
+      "transform": {
+        "translation": [0.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scaling": [1.0, 1.0, 1.0]
+      },
+      "children": []
+    },
+    {
+      "type": "MESH",
+      "name": "Left Block",
+      "file_name": "Resources/Models/block/block.obj",
+      "transform": {
+        "translation": [-2.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scaling": [1.0, 1.0, 1.0]
+      },
+      "children": [
+        {
+          "type": "MESH",
+          "name": "Child Star",
+          "file_name": "Resources/Models/star/star.obj",
+          "transform": {
+            "translation": [-2.0, 0.0, 1.5],
+            "rotation": [0.0, 0.0, 0.0],
+            "scaling": [0.7, 0.7, 0.7]
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "type": "MESH",
+      "name": "Right Spike",
+      "file_name": "Resources/Models/spike/spike.obj",
+      "transform": {
+        "translation": [2.0, 0.0, 0.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scaling": [1.0, 1.0, 1.0]
+      },
+      "children": []
+    }
+  ]
+}

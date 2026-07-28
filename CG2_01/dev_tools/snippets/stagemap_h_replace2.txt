@@ -1,0 +1,6 @@
+﻿    // 環境・ライティング設定の保存値 (初期値)
+    std::string weatherPresetName_ = "Sunny (Default)";
+    Vector4 clearColor_ = { 0.1f, 0.25f, 0.5f, 1.0f }; // デフォルトの青背景
+    float lightIntensity_ = 1.0f;
+    Vector3 lightColor_ = { 0.9f, 0.9f, 0.9f };
+    Vector3 lightDirection_ = { 0.5f, -1.0f, 0.5f };

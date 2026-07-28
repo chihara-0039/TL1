@@ -1,0 +1,5 @@
+﻿        // 花火パーティクルをランダムに発生させる
+        if (rand() % 15 == 0) {
+            Vector3 fireworkPos = { (rand() % 30) - 15.0f, (rand() % 15) - 10.0f, (rand() % 30) + 30.0f };
+            particleManager->Emit(fireworkPos, 30);
+        }

@@ -1,0 +1,7 @@
+﻿    // 環境・ライティング設定を書き出す
+    ofs << "PRESET \"" << weatherPresetName_ << "\"\n";
+    ofs << "ENVIRONMENT "
+        << clearColor_.x << " " << clearColor_.y << " " << clearColor_.z << " " << clearColor_.w << " "
+        << lightIntensity_ << " "
+        << lightColor_.x << " " << lightColor_.y << " " << lightColor_.z << " "
+        << lightDirection_.x << " " << lightDirection_.y << " " << lightDirection_.z << "\n";

@@ -1,0 +1,127 @@
+﻿#include "ParticleManager.h"
+#include <cassert>
+#include <random>
+
+using namespace Microsoft::WRL;
+
+// 乱数生成器
+static std::random_device seed_gen;
+static std::mt19937_64 engine(seed_gen());
+
+void ParticleManager::Initialize(DirectXCommon* dxCommon, TextureManager* textureManager) {
+    assert(dxCommon);
+    dxCommon_ = dxCommon;
+    textureManager_ = textureManager;
+
+    // 1. テクスチャ読み込み (デフォルト)
+    textureHandle_ = textureManager_->LoadTexture("Resources/UI/inventory/white.png");
+
+    // 2. パイプライン生成
+    CreateRootSignature();
+    CreatePipelineState();
+
+    // 3. メッシュ生成
+    CreateMesh();
+
+    // 4. インスタンシング用バッファ生成
+    {
+        auto device = dxCommon_->GetDevice();
+        UINT size = sizeof(InstanceData) * kMaxParticles;
+
+        D3D12_HEAP_PROPERTIES heapProps = { D3D12_HEAP_TYPE_UPLOAD, D3D12_CPU_PAGE_PROPERTY_UNKNOWN, D3D12_MEMORY_POOL_UNKNOWN, 1, 1 };
+        D3D12_RESOURCE_DESC resDesc = {};
+        resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+        resDesc.Width = size;
+        resDesc.Height = 1; resDesc.DepthOrArraySize = 1; resDesc.MipLevels = 1;
+        resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR; resDesc.SampleDesc.Count = 1;
+
+        HRESULT hr = device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &resDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&instancingBuffer_));
+        assert(SUCCEEDED(hr));
+
+        instancingBuffer_->Map(0, nullptr, (void**)&instancingDataMapped_);
+
+        instancingBufferView_.BufferLocation = instancingBuffer_->GetGPUVirtualAddress();
+        instancingBufferView_.SizeInBytes = size;
+        instancingBufferView_.StrideInBytes = sizeof(InstanceData);
+    }
+}
+
+void ParticleManager::Update(float deltaTime, const Matrix4x4& viewMatrix, const Matrix4x4& projectionMatrix, const Vector3& playerPos) {
+    // 0. 天候エミッターの処理
+    if (weatherEmitter_.active && weatherEmitter_.emitRate > 0.0f) {
+        weatherEmitter_.emitTimer += deltaTime;
+        float emitInterval = 1.0f / weatherEmitter_.emitRate;
+        
+        while (weatherEmitter_.emitTimer >= emitInterval) {
+            weatherEmitter_.emitTimer -= emitInterval;
+            
+            if (particles_.size() < kMaxParticles) {
+                std::uniform_real_distribution<float> distX(-weatherEmitter_.size.x / 2.0f, weatherEmitter_.size.x / 2.0f);
+                std::uniform_real_distribution<float> distY(-weatherEmitter_.size.y / 2.0f, weatherEmitter_.size.y / 2.0f);
+                std::uniform_real_distribution<float> distZ(-weatherEmitter_.size.z / 2.0f, weatherEmitter_.size.z / 2.0f);
+                
+                std::uniform_real_distribution<float> randV(-1.0f, 1.0f);
+                
+                Particle p;
+                p.transform.scale = weatherEmitter_.particleSize;
+                p.transform.rotate = { 0.0f, 0.0f, 0.0f };
+                
+                // プレイヤーの周囲に発生させる
+                p.transform.translate = {
+                    playerPos.x + weatherEmitter_.center.x + distX(engine),
+                    playerPos.y + weatherEmitter_.center.y + distY(engine),
+                    playerPos.z + weatherEmitter_.center.z + distZ(engine)
+                };
+                
+                p.velocity = {
+                    weatherEmitter_.velocity.x + randV(engine) * weatherEmitter_.velocityRandom.x,
+                    weatherEmitter_.velocity.y + randV(engine) * weatherEmitter_.velocityRandom.y,
+                    weatherEmitter_.velocity.z + randV(engine) * weatherEmitter_.velocityRandom.z
+                };
+                
+                p.color = weatherEmitter_.color;
+                p.lifeTime = 0.0f;
+                p.maxTime = weatherEmitter_.particleLife;
+                particles_.push_back(p);
+            }
+        }
+    }
+
+    // 1. パーティクル更新
+    for (auto it = particles_.begin(); it != particles_.end();) {
+        it->lifeTime += deltaTime;
+        if (it->lifeTime >= it->maxTime) {
+            it = particles_.erase(it);
+            continue;
+        }
+        it->transform.translate.x += it->velocity.x * deltaTime * 60.0f;
+        it->transform.translate.y += it->velocity.y * deltaTime * 60.0f;
+        it->transform.translate.z += it->velocity.z * deltaTime * 60.0f;
+        
+        // フェードアウト
+        float alpha = 1.0f - (it->lifeTime / it->maxTime);
+        it->color.w = weatherEmitter_.color.w * alpha; // ベースアルファも考慮
+        ++it;
+    }
+
+    // 2. データ書き込み
+    uint32_t index = 0;
+    Matrix4x4 cameraMatrix = Math::Inverse(viewMatrix);
+    Matrix4x4 billboardMat = Math::MakeIdentity4x4();
+    billboardMat.m[0][0] = cameraMatrix.m[0][0]; billboardMat.m[0][1] = cameraMatrix.m[0][1]; billboardMat.m[0][2] = cameraMatrix.m[0][2];
+    billboardMat.m[1][0] = cameraMatrix.m[1][0]; billboardMat.m[1][1] = cameraMatrix.m[1][1]; billboardMat.m[1][2] = cameraMatrix.m[1][2];
+    billboardMat.m[2][0] = cameraMatrix.m[2][0]; billboardMat.m[2][1] = cameraMatrix.m[2][1]; billboardMat.m[2][2] = cameraMatrix.m[2][2];
+
+    for (const auto& particle : particles_) {
+        if (index >= kMaxParticles) break;
+
+        Matrix4x4 scaleMat = Math::Matrix4x4MakeScaleMatrix(particle.transform.scale);
+        Matrix4x4 transMat = Math::MakeTranslateMatrix(particle.transform.translate);
+        Matrix4x4 worldMat = Math::Multiply(scaleMat, Math::Multiply(billboardMat, transMat));
+        Matrix4x4 wvp = Math::Multiply(worldMat, Math::Multiply(viewMatrix, projectionMatrix));
+
+        instancingDataMapped_[index].WVP = wvp;
+        instancingDataMapped_[index].color = particle.color;
+        index++;
+    }
+}

@@ -1,0 +1,15 @@
+﻿    // 環境設定（背景色、ライト）のゲッター・セッター
+    const Vector4& GetClearColor() const { return clearColor_; }
+    void SetClearColor(const Vector4& color) { clearColor_ = color; }
+
+    float GetLightIntensity() const { return lightIntensity_; }
+    void SetLightIntensity(float intensity) { lightIntensity_ = intensity; }
+
+    const Vector3& GetLightColor() const { return lightColor_; }
+    void SetLightColor(const Vector3& color) { lightColor_ = color; }
+
+    const Vector3& GetLightDirection() const { return lightDirection_; }
+    void SetLightDirection(const Vector3& dir) { lightDirection_ = dir; }
+
+    const std::string& GetWeatherPresetName() const { return weatherPresetName_; }
+    void SetWeatherPresetName(const std::string& name) { weatherPresetName_ = name; }

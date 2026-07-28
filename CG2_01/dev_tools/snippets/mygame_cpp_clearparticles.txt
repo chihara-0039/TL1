@@ -1,0 +1,7 @@
+﻿                stageSelect_->Initialize(object3dCommon.get(), input.get());
+                gameClearScene_->Initialize(object3dCommon.get());
+                isGoalReached_ = false;
+                stageMap_.Clear();
+                player_->Respawn();
+                particleManager->ClearParticles();
+                currentMode_ = AppMode::StageSelect;

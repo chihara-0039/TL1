@@ -1,0 +1,79 @@
+﻿    // --- 天候・環境設定 UI ---
+    if (ImGui::CollapsingHeader("Weather / Environment")) {
+        auto& wpMgr = WeatherPresetManager::GetInstance();
+        auto& presets = wpMgr.GetPresets();
+
+        if (presets.empty()) {
+            ImGui::Text("No presets available.");
+        } else {
+            // 現在のプリセット名を取得
+            std::string currentPresetName = stageMap.GetWeatherPresetName();
+            if (currentPresetName.empty()) {
+                currentPresetName = presets[0].name;
+                stageMap.SetWeatherPresetName(currentPresetName);
+            }
+
+            // ドロップダウン
+            if (ImGui::BeginCombo("Preset", currentPresetName.c_str())) {
+                for (const auto& p : presets) {
+                    bool isSelected = (currentPresetName == p.name);
+                    if (ImGui::Selectable(p.name.c_str(), isSelected)) {
+                        stageMap.SetWeatherPresetName(p.name);
+                        // 選んだ瞬間にパラメータをステージに反映
+                        stageMap.SetClearColor(p.clearColor);
+                        stageMap.SetLightIntensity(p.lightIntensity);
+                        stageMap.SetLightColor(p.lightColor);
+                        stageMap.SetLightDirection(p.lightDirection);
+                    }
+                    if (isSelected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            // 現在のプリセットを編集する
+            WeatherPreset* currentPreset = wpMgr.GetPresetByName(currentPresetName);
+            if (currentPreset) {
+                ImGui::Separator();
+                ImGui::Text("Lighting Settings");
+                ImGui::ColorEdit3("Light Color", &currentPreset->lightColor.x);
+                ImGui::SliderFloat("Light Intensity", &currentPreset->lightIntensity, 0.0f, 5.0f);
+                ImGui::SliderFloat3("Light Direction", &currentPreset->lightDirection.x, -1.0f, 1.0f);
+                ImGui::ColorEdit4("Clear Color", &currentPreset->clearColor.x);
+
+                ImGui::Separator();
+                ImGui::Text("Particle Settings");
+                ImGui::Checkbox("Enable Particle", &currentPreset->particleEnabled);
+                if (currentPreset->particleEnabled) {
+                    // Texture is a string, we might just provide a predefined list or text input for now
+                    // ImGui::InputText("Texture", &currentPreset->particleTexture...); (skipped for simplicity, just use white.png)
+                    ImGui::SliderFloat("Emit Rate", &currentPreset->emitRate, 0.0f, 1000.0f);
+                    ImGui::SliderFloat3("Emit Size", &currentPreset->emitSize.x, 0.1f, 100.0f);
+                    ImGui::SliderFloat3("Velocity", &currentPreset->velocity.x, -20.0f, 20.0f);
+                    ImGui::SliderFloat3("Velocity Random", &currentPreset->velocityRandom.x, 0.0f, 10.0f);
+                    ImGui::SliderFloat3("Particle Size", &currentPreset->particleSize.x, 0.01f, 2.0f);
+                    ImGui::SliderFloat("LifeTime", &currentPreset->particleLife, 0.1f, 10.0f);
+                    ImGui::ColorEdit4("Particle Color", &currentPreset->particleColor.x);
+                }
+
+                if (ImGui::Button("Save Preset Changes")) {
+                    wpMgr.SavePresets();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Save as New Preset")) {
+                    WeatherPreset newPreset = *currentPreset;
+                    newPreset.name = currentPreset->name + " (Copy)";
+                    presets.push_back(newPreset);
+                    wpMgr.SavePresets();
+                    stageMap.SetWeatherPresetName(newPreset.name);
+                }
+
+                // 編集中の内容をリアルタイムでステージに反映する
+                stageMap.SetClearColor(currentPreset->clearColor);
+                stageMap.SetLightIntensity(currentPreset->lightIntensity);
+                stageMap.SetLightColor(currentPreset->lightColor);
+                stageMap.SetLightDirection(currentPreset->lightDirection);
+            }
+        }
+    }

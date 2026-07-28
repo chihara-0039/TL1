@@ -1,0 +1,14 @@
+﻿void MyGame::UpdateSceneTransition() {
+    if ((currentMode_ == AppMode::GamePlay || currentMode_ == AppMode::GamePlay_BlockPlace)
+        && input->TriggerKey(DIK_ESCAPE)) {
+        stageMap_ = backupMap_; // バックアップから復元 (ブロック設置も元に戻る)
+        stageRenderer_->BuildFromStageMap(stageMap_);
+        // コントローラーをリセットしてステージ選択に戻る
+        bubblePickupController_.Initialize(&stageMap_, stageRenderer_.get(), &blockInventory_);
+        stageSelect_->Initialize(object3dCommon.get(), input.get());
+        isGoalReached_ = false;
+        if (player_) { player_->Respawn(); }
+        particleManager->ClearParticles();
+        currentMode_ = AppMode::StageSelect;
+    }
+}

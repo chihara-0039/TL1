@@ -1,0 +1,53 @@
+# --- Visual Studio Standard ---
+.vs/
+x64/
+x86/
+Debug/
+Release/
+*.user
+*.suo
+*.opensdf
+*.sdf
+*.cache
+*.db
+*.opdb
+*.pdb
+*.ipCH
+*.ipch
+
+# --- Build Results & Intermediate Files ---
+*.obj
+*.iobj
+*.tlog
+*.log
+*.idb
+*.ilk
+*.aps
+*.pch
+*.res
+*.sbr
+
+# --- Binary Output () ---
+# すべてのフォルダでexe, dll, libを無視する設定
+*.exe
+*.dll
+*.lib
+
+# --- Custom Output Folders () ---
+# プロジェクト特有の生成フォルダを無視
+generated/
+**/generated/
+project/..$generated/
+
+# --- Other ---
+.DS_Store
+Thumbs.db
+
+# ImGuiの設定ファイルを無視する
+imgui.ini
+
+# --- Local submission packages ---
+CG2_01_Project_Submission.zip
+CG2_01_Project_Submission/
+# Local Release packages generated for evaluation/submission checks.
+artifacts/

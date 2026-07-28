@@ -1,0 +1,33 @@
+﻿    // --------------------------------------------------------
+    // 14. ライト設定をステージマップから取得してエンジンに反映
+    //     ステージごとに異なる光の色・方向・強度をサポートするための仕組み
+    // --------------------------------------------------------
+    Vector3 lightDir = stageMap_.GetLightDirection();
+    lightCamera_->Update(lightDir, player_->GetPosition());
+    object3dCommon->SetLightDirection(lightDir);
+    object3dCommon->SetLightColor(Vector4(
+        stageMap_.GetLightColor().x,
+        stageMap_.GetLightColor().y,
+        stageMap_.GetLightColor().z, 1.0f));
+    object3dCommon->SetLightIntensity(stageMap_.GetLightIntensity());
+    object3dCommon->SetCameraPosition(camera->GetPosition()); // スペキュラー計算用
+
+    // クリアカラーをステージ設定と同期 (PostProcessRenderer のオフスクリーン背景色)
+    postProcess_.SetClearColor(stageMap_.GetClearColor());
+    
+    // パーティクルシステムの天候エミッターを同期
+    WeatherPreset* preset = WeatherPresetManager::GetInstance().GetPresetByName(stageMap_.GetWeatherPresetName());
+    auto& emitter = particleManager->GetWeatherEmitter();
+    if (preset) {
+        emitter.active = preset->particleEnabled;
+        emitter.emitRate = preset->emitRate;
+        emitter.size = preset->emitSize;
+        emitter.velocity = preset->velocity;
+        emitter.velocityRandom = preset->velocityRandom;
+        emitter.particleSize = preset->particleSize;
+        emitter.particleLife = preset->particleLife;
+        emitter.color = preset->particleColor;
+        // （テクスチャ変更も必要ならここで particleManager->SetTexture() を呼ぶ）
+    } else {
+        emitter.active = false;
+    }
